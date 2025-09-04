@@ -6,6 +6,8 @@ class Program
     public string mccProcessSteam = "MCC-Win64-Shipping";
     public string mccProcessWinstore = "MCCWinStore-Win64-Shipping";
 
+    int RevertTick = 2;
+
     //
     // Pointers for ODSTMCC 1.3495.0.0
     public string Revert = "halo3odst.dll+0x20FF6BF";
@@ -21,26 +23,16 @@ class Program
             var HeaderCheck = memory.ReadBytes(MapHeader, 4);
             string HeaderString = (HeaderCheck != null && HeaderCheck.Length > 0) ? System.Text.Encoding.UTF8.GetString(HeaderCheck) : string.Empty;
 
-            if (HeaderString == "daeh")
+            var C100IsLoaded = memory.ReadBytes(MapNameOffset, 9);
+            string MapNameOffsetString = (C100IsLoaded != null && C100IsLoaded.Length > 0) ? System.Text.Encoding.UTF8.GetString(C100IsLoaded) : string.Empty;
+
+            var GetTick = memory.ReadInt(Tick);
+
+            if (HeaderString == "daeh" && MapNameOffsetString == @"c100\c100" && GetTick >= RevertTick)
             {
-                var C100IsLoaded = memory.ReadBytes(MapNameOffset, 9);
-                string MapNameOffsetString = (C100IsLoaded != null && C100IsLoaded.Length > 0) ? System.Text.Encoding.UTF8.GetString(C100IsLoaded) : string.Empty;
-
-                if (MapNameOffsetString == @"c100\c100")
-                {
-                    var GetTick = memory.ReadInt(Tick);
-
-                    if (GetTick >= 2) 
-                    {
-                        memory.WriteMemory(Revert, "byte", "0x01");
-                        Console.WriteLine("REVERT!");
-                        await Task.Delay(25000);
-                    }
-                }
-                else
-                {
-                    return;
-                }
+                memory.WriteMemory(Revert, "byte", "0x01");
+                Console.WriteLine("REVERT!");
+                await Task.Delay(25000);
             }
             else
             {
